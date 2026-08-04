@@ -1,74 +1,50 @@
-# CHANGELOG - Sua Mesa
+# Changelog - Sua Mesa
 
 Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
-O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
-e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
-
----
-
 ## [0.0.1] - 2026-08-04
 
-### Nova Funcionalidade (N)
+### ✨ Adicionado (Etapa 2: Schema do Banco de Dados)
 
-- **Backend NestJS**: Estrutura base do backend com NestJS 10.4.5
-- **Prisma 7**: Configuração do ORM com PostgreSQL e Driver Adapter
-- **Multitenant**: Middleware para extração de tenant via subdomínio
-- **Autenticação**: Estrutura preparada para JWT e autenticação
-- **Documentação API**: Swagger configurado em `/api/docs`
-- **Validação**: Class-validator e class-transformer globalmente configurados
-- **CORS**: Configuração de CORS com origens permitidas via variáveis de ambiente
-- **Variáveis de Ambiente**: `.env.example` com todas as configurações necessárias
+#### Schema Prisma 7 Completo
+- Criadas 10 tabelas principais: `tenants`, `staff`, `tenant_colors`, `categories`, `menu_items`, `tables`, `orders`, `order_items`, `audit_logs`, `waiter_interaction_log`
+- Definidos 7 enums: `TableStatus`, `OrderStatus`, `ItemStatus`, `StaffProfile`, `InteractionType`, `TenantStatus`, `TenantPlan`
+- Configurados relacionamentos multitenant com isolamento de dados via `tenant_id`
+- Implementado soft delete em `tenants` com campos `deleted_at` e `deleted_by`
 
-### Evolução (E)
+#### Dados Iniciais (Seed)
+- Superadministrador: `admin@suamesa.app.br` / `Admin@2026`
+- Tenant de exemplo: "Restaurante do Zé" (subdomínio: `restaurante-do-ze`)
+- Gerente do tenant: `gerente@restaurantedoze.com` / `Manager@2026`
+- Paleta de cores padrão: "Olive Garden Feast"
+- 4 categorias de cardápio: Entradas, Pratos Principais, Bebidas, Sobremesas
+- 9 itens de cardápio com preços e tempos de preparo
+- 3 mesas com capacidades variadas (2, 4 e 6 pessoas)
 
-- Configuração de scripts npm para build, start, test e Prisma
-- Estrutura de pastas seguindo padrões NestJS
-- Pipeline de build com cópia automática de assets Prisma
+#### Configurações Técnicas
+- Prisma 7 com adapter PostgreSQL (`@prisma/adapter-pg`)
+- Script de seed com `tsx` para suporte a TypeScript
+- Índices otimizados para consultas multitenant
+- Campos UUID como chaves primárias
+- Suporte a JSONB para dados flexíveis (opções de menu, configurações)
 
-### Correção (C)
+### 🔧 Modificado
+- Atualizado `prisma/schema.prisma` com schema completo
+- Criado `prisma/seed.ts` com dados iniciais
+- Configurado `package.json` com script `prisma:seed`
+- Atualizado `prisma.config.ts` para usar adapter PG
 
-- N/A (Primeira versão)
-
-### Removido
-
-- N/A
-
-### Segurança
-
-- Variáveis sensíveis em `.env` (não versionadas)
-- CORS restrito a origens permitidas
-- Validação global de payloads com whitelist
-
----
-
-## Notas de Desenvolvimento
-
-### Stack Utilizado
-
-- **Runtime**: Node.js 20+ (LTS)
-- **Framework**: NestJS 10.4.5
-- **ORM**: Prisma 7.9.1 com PostgreSQL
-- **Validação**: class-validator 0.14.1 + class-transformer 0.5.1
-- **Documentação**: Swagger/OpenAPI
-- **Autenticação**: JWT (preparado)
-- **Banco de Dados**: PostgreSQL com schema `public`
-
-### Ambiente
-
-- **Desenvolvimento**: http://192.168.101.15:3001
-- **Swagger**: http://192.168.101.15:3001/api/docs
-- **Prefixo API**: `/api`
-
-### Próximas Etapas
-
-- [ ] Etapa 2: Modelos de Dados (Prisma Schema)
-- [ ] Etapa 3: Autenticação e Autorização
-- [ ] Etapa 4: Módulos de Negócio (Tenants, Comandas, Pedidos, etc.)
-- [ ] Etapa 5: Frontend Next.js
-- [ ] Etapa 6: Integração e Testes
-- [ ] Etapa 7: Deploy e CI/CD
+### 📋 Notas
+- Migration `init` criada e executada com sucesso
+- Seed executado sem erros
+- Todos os dados verificados no banco PostgreSQL
+- Pronto para desenvolvimento da Etapa 3 (APIs)
 
 ---
 
-**Versionamento**: N.E.C (Nova funcionalidade, Evolução, Correção)
+## Versionamento
+
+Seguindo o padrão **N.E.C** (Nova funcionalidade, Evolução, Correção):
+- **N** = Nova funcionalidade
+- **E** = Evolução de funcionalidade existente
+- **C** = Correção de bug

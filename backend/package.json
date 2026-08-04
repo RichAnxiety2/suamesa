@@ -21,7 +21,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
-    "prisma:seed": "ts-node prisma/seed.ts",
+    "prisma:seed": "tsx prisma/seed.ts",
     "prisma:studio": "prisma studio",
     "prisma:reset": "prisma migrate reset"
   },
@@ -33,10 +33,11 @@
     "@nestjs/swagger": "^7.4.0",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
-    "pg": "^8.13.1",
+    "pg": "^8.22.0",
     "reflect-metadata": "^0.1.14",
     "rxjs": "^7.8.1",
     "swagger-ui-express": "^4.6.3"
@@ -44,7 +45,7 @@
   "devDependencies": {
     "@nestjs/cli": "^10.4.5",
     "@nestjs/schematics": "^10.1.5",
-    "@prisma/cli": "^7.9.1",
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.13",
@@ -60,6 +61,7 @@
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.23.5",
     "typescript": "^5.5.4"
   },
   "prisma": {

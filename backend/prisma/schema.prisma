@@ -2,9 +2,9 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  moduleFormat = "cjs"
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
@@ -12,117 +12,356 @@ datasource db {
 }
 
 // ============================================
-// TENANT (Multitenant)
+// ENUMS
 // ============================================
+
+enum TableStatus {
+  FREE
+  OCCUPIED
+  CLEANING
+  RESERVED
+}
+
+enum OrderStatus {
+  DRAFT
+  OPEN
+  PREPARING
+  READY
+  DELIVERED
+  CLOSED
+}
+
+enum ItemStatus {
+  PENDING
+  PREPARING
+  READY
+  DELIVERED
+}
+
+enum StaffProfile {
+  SUPERADMIN
+  MANAGER
+  CASHIER
+  WAITER
+  KITCHEN
+}
+
+enum InteractionType {
+  ASSIGNED
+  CONFIRMED
+  TRANSFERRED
+  PUXOU
+  ESCALATION
+  GERENCIA
+}
+
+enum TenantStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum TenantPlan {
+  FOUNDER
+  BASIC
+  PRO
+}
+
+// ============================================
+// TENANTS (Estabelecimentos)
+// ============================================
+
 model Tenant {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  domain    String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(100)
+  subdomain String   @unique @db.VarChar(50)
+  plan      TenantPlan @default(FOUNDER)
+  status    TenantStatus @default(ACTIVE)
+  logo_url  String?  @db.VarChar(255)
+  config    Json?    @db.JsonB
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+  deleted_by String?
 
   staff     Staff[]
-  mesas     Mesa[]
-  comandas  Comanda[]
-  itens     ItemComanda[]
+  colors    TenantColors?
+  tables    Table[]
+  categories Category[]
+  menu_items MenuItem[]
+  orders    Order[]
+  order_items OrderItem[]
+  audit_logs AuditLog[]
+  waiter_interactions WaiterInteractionLog[]
 
+  @@index([status])
+  @@index([deleted_at])
   @@map("tenants")
 }
 
 // ============================================
-// STAFF (Usuários)
+// STAFF (Funcionários)
 // ============================================
+
 model Staff {
-  id        String   @id @default(cuid())
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  tenant_id String?
+  tenant    Tenant?  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 
-  name      String
-  email     String
-  password  String
-  role      String   @default("garcom") // superadmin, gerente, caixa, garcom, cozinha
-  accessCode String? @unique // Código de acesso para garçom/cozinha
+  name      String   @db.VarChar(100)
+  profile   StaffProfile
+  email     String   @db.VarChar(100)
+  password_hash String? @db.VarChar(255)
+  last_password_change_at DateTime?
+  password_change_required Boolean @default(false)
+  access_code_hash String? @db.VarChar(255)
+  access_code_expires_at DateTime?
+  photo_url String?  @db.VarChar(255)
+  active    Boolean  @default(true)
+  first_access_completed Boolean @default(false)
+  commission_rate Decimal? @db.Decimal(5, 2)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  last_access_at DateTime?
 
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  orders_as_waiter Order[]
+  order_items_prepared OrderItem[]
+  audit_logs AuditLog[]
+  waiter_interactions_from WaiterInteractionLog[] @relation("from_waiter")
+  waiter_interactions_to WaiterInteractionLog[] @relation("to_waiter")
+  tables_default Table[]
 
-  @@unique([tenantId, email])
+  @@unique([tenant_id, email])
+  @@index([tenant_id])
   @@map("staff")
 }
 
 // ============================================
-// MESA (Mesas do Estabelecimento)
+// TENANT COLORS (Personalização de Cores)
 // ============================================
-model Mesa {
-  id        String   @id @default(cuid())
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  numero    Int
-  qrCode    String   @unique
+model TenantColors {
+  tenant_id String @id
+  tenant    Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  primary_color String @default("#606c38") @db.VarChar(7)
+  primary_light String @default("#dda15e") @db.VarChar(7)
+  primary_dark String @default("#283618") @db.VarChar(7)
+  secondary_color String @default("#fefae0") @db.VarChar(7)
+  secondary_light String @default("#e9edc9") @db.VarChar(7)
+  secondary_dark String @default("#bc6c25") @db.VarChar(7)
+  background_color String @default("#fefae0") @db.VarChar(7)
+  text_primary String @default("#283618") @db.VarChar(7)
+  text_secondary String @default("#606c38") @db.VarChar(7)
+  accent_color String @default("#dda15e") @db.VarChar(7)
+  active_palette String @default("olive-garden") @db.VarChar(50)
+  updated_at DateTime @updatedAt
+  updated_by String?
 
-  comandas  Comanda[]
-
-  @@unique([tenantId, numero])
-  @@map("mesas")
+  @@map("tenant_colors")
 }
 
 // ============================================
-// COMANDA (Pedidos Agrupados por Mesa)
+// CATEGORIES (Categorias do Cardápio)
 // ============================================
-model Comanda {
-  id        String   @id @default(cuid())
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  mesaId    String
-  mesa      Mesa     @relation(fields: [mesaId], references: [id], onDelete: Cascade)
+model Category {
+  id        String   @id @default(uuid())
+  tenant_id String
+  tenant    Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 
-  status    String   @default("aberta") // aberta, fechada
-  total     Float    @default(0)
+  name      String   @db.VarChar(100)
+  description String? @db.VarChar(255)
+  sort_order Int     @default(0)
+  active    Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  closedAt  DateTime?
+  menu_items MenuItem[]
 
-  itens     ItemComanda[]
+  @@unique([tenant_id, name])
+  @@index([tenant_id])
+  @@index([sort_order])
+  @@map("categories")
+}
 
-  @@index([tenantId])
-  @@index([mesaId])
+// ============================================
+// MENU ITEMS (Itens do Cardápio)
+// ============================================
+
+model MenuItem {
+  id        String   @id @default(uuid())
+  tenant_id String
+  tenant    Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  category_id String?
+  category    Category? @relation(fields: [category_id], references: [id], onDelete: SetNull)
+
+  name      String   @db.VarChar(100)
+  description String? @db.VarChar(500)
+  price     Decimal  @db.Decimal(10, 2)
+  image_url String?  @db.VarChar(255)
+  available Boolean  @default(true)
+  options   Json?    @db.JsonB
+  preparation_time Int?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  order_items OrderItem[]
+
+  @@unique([tenant_id, name])
+  @@index([tenant_id])
+  @@index([category_id])
+  @@index([available])
+  @@map("menu_items")
+}
+
+// ============================================
+// TABLES (Mesas do Estabelecimento)
+// ============================================
+
+model Table {
+  id        String   @id @default(uuid())
+  tenant_id String
+  tenant    Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  number    Int
+  capacity  Int
+  location  String?  @db.VarChar(100)
+  status    TableStatus @default(FREE)
+  default_waiter_id String?
+  default_waiter Staff? @relation(fields: [default_waiter_id], references: [id], onDelete: SetNull)
+  qr_code   String?  @db.VarChar(255)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  orders    Order[]
+  waiter_interactions WaiterInteractionLog[]
+
+  @@unique([tenant_id, number])
+  @@index([tenant_id])
   @@index([status])
-  @@map("comandas")
+  @@map("tables")
 }
 
 // ============================================
-// ITEM COMANDA (Itens de Cada Pedido)
+// ORDERS (Comandas/Pedidos)
 // ============================================
-model ItemComanda {
-  id        String   @id @default(cuid())
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  comandaId String
-  comanda   Comanda  @relation(fields: [comandaId], references: [id], onDelete: Cascade)
+model Order {
+  id        String   @id @default(uuid())
+  tenant_id String
+  tenant    Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 
-  descricao String
-  quantidade Int
-  preco     Float
-  subtotal  Float    // quantidade * preco
+  table_id  String
+  table     Table    @relation(fields: [table_id], references: [id], onDelete: Cascade)
 
-  status    String   @default("pendente") // pendente, preparando, pronto, entregue
+  waiter_id String?
+  waiter    Staff?   @relation(fields: [waiter_id], references: [id], onDelete: SetNull)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  customer_name String? @db.VarChar(100)
+  password_hash String? @db.VarChar(255)
+  status    OrderStatus @default(DRAFT)
+  total     Decimal  @default(0) @db.Decimal(10, 2)
+  tip       Decimal  @default(0) @db.Decimal(10, 2)
+  payment_method String? @db.VarChar(50)
+  opened_at DateTime @default(now())
+  closed_at DateTime?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  @@index([tenantId])
-  @@index([comandaId])
+  order_items OrderItem[]
+
+  @@index([tenant_id])
+  @@index([table_id])
   @@index([status])
-  @@map("itens_comanda")
+  @@index([waiter_id])
+  @@map("orders")
 }
 
+// ============================================
+// ORDER ITEMS (Itens de Cada Comanda)
+// ============================================
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  order_id  String
+  order     Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  tenant_id String
+  tenant    Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  menu_item_id String
+  menu_item MenuItem @relation(fields: [menu_item_id], references: [id], onDelete: Restrict)
+
+  quantity  Int
+  unit_price Decimal @db.Decimal(10, 2)
+  total_price Decimal @db.Decimal(10, 2)
+  observations String? @db.VarChar(500)
+  options_chosen Json? @db.JsonB
+  status    ItemStatus @default(PENDING)
+  prepared_by String?
+  prepared_by_staff Staff? @relation(fields: [prepared_by], references: [id], onDelete: SetNull)
+  sent_to_kitchen_at DateTime?
+  ready_at  DateTime?
+  delivered_at DateTime?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([order_id])
+  @@index([status])
+  @@index([prepared_by])
+  @@map("order_items")
+}
+
+// ============================================
+// AUDIT LOGS (Logs de Auditoria)
+// ============================================
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  tenant_id String
+  tenant    Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  staff_id  String?
+  staff     Staff?   @relation(fields: [staff_id], references: [id], onDelete: SetNull)
+
+  action    String   @db.VarChar(100)
+  details   Json?    @db.JsonB
+  ip_address String? @db.VarChar(45)
+  user_agent String? @db.VarChar(255)
+  created_at DateTime @default(now())
+
+  @@index([tenant_id])
+  @@index([created_at])
+  @@index([staff_id])
+  @@map("audit_logs")
+}
+
+// ============================================
+// WAITER INTERACTION LOG (Logs de Atribuição de Garçons)
+// ============================================
+
+model WaiterInteractionLog {
+  id        String   @id @default(uuid())
+  tenant_id String
+  tenant    Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  table_id  String
+  table     Table    @relation(fields: [table_id], references: [id], onDelete: Cascade)
+
+  from_waiter_id String?
+  from_waiter Staff? @relation("from_waiter", fields: [from_waiter_id], references: [id], onDelete: SetNull)
+
+  to_waiter_id String?
+  to_waiter Staff? @relation("to_waiter", fields: [to_waiter_id], references: [id], onDelete: SetNull)
+
+  interaction_type InteractionType
+  reason    String?  @db.VarChar(255)
+  created_at DateTime @default(now())
+
+  @@index([tenant_id])
+  @@index([table_id])
+  @@index([created_at])
+  @@map("waiter_interaction_logs")
+}

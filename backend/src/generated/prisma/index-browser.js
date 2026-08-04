@@ -123,57 +123,149 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 exports.Prisma.TenantScalarFieldEnum = {
   id: 'id',
   name: 'name',
-  slug: 'slug',
-  domain: 'domain',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  subdomain: 'subdomain',
+  plan: 'plan',
+  status: 'status',
+  logo_url: 'logo_url',
+  config: 'config',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  deleted_at: 'deleted_at',
+  deleted_by: 'deleted_by'
 };
 
 exports.Prisma.StaffScalarFieldEnum = {
   id: 'id',
-  tenantId: 'tenantId',
+  tenant_id: 'tenant_id',
   name: 'name',
+  profile: 'profile',
   email: 'email',
-  password: 'password',
-  role: 'role',
-  accessCode: 'accessCode',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  password_hash: 'password_hash',
+  last_password_change_at: 'last_password_change_at',
+  password_change_required: 'password_change_required',
+  access_code_hash: 'access_code_hash',
+  access_code_expires_at: 'access_code_expires_at',
+  photo_url: 'photo_url',
+  active: 'active',
+  first_access_completed: 'first_access_completed',
+  commission_rate: 'commission_rate',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  last_access_at: 'last_access_at'
 };
 
-exports.Prisma.MesaScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  numero: 'numero',
-  qrCode: 'qrCode',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+exports.Prisma.TenantColorsScalarFieldEnum = {
+  tenant_id: 'tenant_id',
+  primary_color: 'primary_color',
+  primary_light: 'primary_light',
+  primary_dark: 'primary_dark',
+  secondary_color: 'secondary_color',
+  secondary_light: 'secondary_light',
+  secondary_dark: 'secondary_dark',
+  background_color: 'background_color',
+  text_primary: 'text_primary',
+  text_secondary: 'text_secondary',
+  accent_color: 'accent_color',
+  active_palette: 'active_palette',
+  updated_at: 'updated_at',
+  updated_by: 'updated_by'
 };
 
-exports.Prisma.ComandaScalarFieldEnum = {
+exports.Prisma.CategoryScalarFieldEnum = {
   id: 'id',
-  tenantId: 'tenantId',
-  mesaId: 'mesaId',
+  tenant_id: 'tenant_id',
+  name: 'name',
+  description: 'description',
+  sort_order: 'sort_order',
+  active: 'active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.MenuItemScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  category_id: 'category_id',
+  name: 'name',
+  description: 'description',
+  price: 'price',
+  image_url: 'image_url',
+  available: 'available',
+  options: 'options',
+  preparation_time: 'preparation_time',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.TableScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  number: 'number',
+  capacity: 'capacity',
+  location: 'location',
+  status: 'status',
+  default_waiter_id: 'default_waiter_id',
+  qr_code: 'qr_code',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.OrderScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  table_id: 'table_id',
+  waiter_id: 'waiter_id',
+  customer_name: 'customer_name',
+  password_hash: 'password_hash',
   status: 'status',
   total: 'total',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  closedAt: 'closedAt'
+  tip: 'tip',
+  payment_method: 'payment_method',
+  opened_at: 'opened_at',
+  closed_at: 'closed_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 };
 
-exports.Prisma.ItemComandaScalarFieldEnum = {
+exports.Prisma.OrderItemScalarFieldEnum = {
   id: 'id',
-  tenantId: 'tenantId',
-  comandaId: 'comandaId',
-  descricao: 'descricao',
-  quantidade: 'quantidade',
-  preco: 'preco',
-  subtotal: 'subtotal',
+  order_id: 'order_id',
+  tenant_id: 'tenant_id',
+  menu_item_id: 'menu_item_id',
+  quantity: 'quantity',
+  unit_price: 'unit_price',
+  total_price: 'total_price',
+  observations: 'observations',
+  options_chosen: 'options_chosen',
   status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  prepared_by: 'prepared_by',
+  sent_to_kitchen_at: 'sent_to_kitchen_at',
+  ready_at: 'ready_at',
+  delivered_at: 'delivered_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.AuditLogScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  staff_id: 'staff_id',
+  action: 'action',
+  details: 'details',
+  ip_address: 'ip_address',
+  user_agent: 'user_agent',
+  created_at: 'created_at'
+};
+
+exports.Prisma.WaiterInteractionLogScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  table_id: 'table_id',
+  from_waiter_id: 'from_waiter_id',
+  to_waiter_id: 'to_waiter_id',
+  interaction_type: 'interaction_type',
+  reason: 'reason',
+  created_at: 'created_at'
 };
 
 exports.Prisma.SortOrder = {
@@ -181,23 +273,89 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
 };
 
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
+exports.TenantPlan = exports.$Enums.TenantPlan = {
+  FOUNDER: 'FOUNDER',
+  BASIC: 'BASIC',
+  PRO: 'PRO'
+};
 
+exports.TenantStatus = exports.$Enums.TenantStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  SUSPENDED: 'SUSPENDED'
+};
+
+exports.StaffProfile = exports.$Enums.StaffProfile = {
+  SUPERADMIN: 'SUPERADMIN',
+  MANAGER: 'MANAGER',
+  CASHIER: 'CASHIER',
+  WAITER: 'WAITER',
+  KITCHEN: 'KITCHEN'
+};
+
+exports.TableStatus = exports.$Enums.TableStatus = {
+  FREE: 'FREE',
+  OCCUPIED: 'OCCUPIED',
+  CLEANING: 'CLEANING',
+  RESERVED: 'RESERVED'
+};
+
+exports.OrderStatus = exports.$Enums.OrderStatus = {
+  DRAFT: 'DRAFT',
+  OPEN: 'OPEN',
+  PREPARING: 'PREPARING',
+  READY: 'READY',
+  DELIVERED: 'DELIVERED',
+  CLOSED: 'CLOSED'
+};
+
+exports.ItemStatus = exports.$Enums.ItemStatus = {
+  PENDING: 'PENDING',
+  PREPARING: 'PREPARING',
+  READY: 'READY',
+  DELIVERED: 'DELIVERED'
+};
+
+exports.InteractionType = exports.$Enums.InteractionType = {
+  ASSIGNED: 'ASSIGNED',
+  CONFIRMED: 'CONFIRMED',
+  TRANSFERRED: 'TRANSFERRED',
+  PUXOU: 'PUXOU',
+  ESCALATION: 'ESCALATION',
+  GERENCIA: 'GERENCIA'
+};
 
 exports.Prisma.ModelName = {
   Tenant: 'Tenant',
   Staff: 'Staff',
-  Mesa: 'Mesa',
-  Comanda: 'Comanda',
-  ItemComanda: 'ItemComanda'
+  TenantColors: 'TenantColors',
+  Category: 'Category',
+  MenuItem: 'MenuItem',
+  Table: 'Table',
+  Order: 'Order',
+  OrderItem: 'OrderItem',
+  AuditLog: 'AuditLog',
+  WaiterInteractionLog: 'WaiterInteractionLog'
 };
 
 /**
