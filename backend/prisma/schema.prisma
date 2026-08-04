@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  moduleFormat = "cjs"
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// TENANT (Multitenant)
+// ============================================
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  domain    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  staff     Staff[]
+  mesas     Mesa[]
+  comandas  Comanda[]
+  itens     ItemComanda[]
+
+  @@map("tenants")
+}
+
+// ============================================
+// STAFF (Usuários)
+// ============================================
+model Staff {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name      String
+  email     String
+  password  String
+  role      String   @default("garcom") // superadmin, gerente, caixa, garcom, cozinha
+  accessCode String? @unique // Código de acesso para garçom/cozinha
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, email])
+  @@map("staff")
+}
+
+// ============================================
+// MESA (Mesas do Estabelecimento)
+// ============================================
+model Mesa {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  numero    Int
+  qrCode    String   @unique
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comandas  Comanda[]
+
+  @@unique([tenantId, numero])
+  @@map("mesas")
+}
+
+// ============================================
+// COMANDA (Pedidos Agrupados por Mesa)
+// ============================================
+model Comanda {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  mesaId    String
+  mesa      Mesa     @relation(fields: [mesaId], references: [id], onDelete: Cascade)
+
+  status    String   @default("aberta") // aberta, fechada
+  total     Float    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  closedAt  DateTime?
+
+  itens     ItemComanda[]
+
+  @@index([tenantId])
+  @@index([mesaId])
+  @@index([status])
+  @@map("comandas")
+}
+
+// ============================================
+// ITEM COMANDA (Itens de Cada Pedido)
+// ============================================
+model ItemComanda {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  comandaId String
+  comanda   Comanda  @relation(fields: [comandaId], references: [id], onDelete: Cascade)
+
+  descricao String
+  quantidade Int
+  preco     Float
+  subtotal  Float    // quantidade * preco
+
+  status    String   @default("pendente") // pendente, preparando, pronto, entregue
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([comandaId])
+  @@index([status])
+  @@map("itens_comanda")
+}
+
